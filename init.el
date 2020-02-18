@@ -152,3 +152,63 @@ by Prelude.")
  (run-at-time 5 nil 'prelude-tip-of-the-day))
 
 ;;; init.el ends here
+
+
+;; https://scripter.co/emacsclient-on-windows/
+;; running as a server on windows
+(require 'server)
+
+(when (equal window-system 'w32)
+  (progn
+    (setq server-use-tcp t)
+    (setq server-auth-dir
+          (let ((dir (concat user-emacs-directory
+                             "server_" (format "%s_%s"
+                                               emacs-major-version
+                                               emacs-minor-version)
+                             "_" (system-name)
+                             "/")))
+            (make-directory dir :parents)
+            dir))))
+
+(with-eval-after-load 'server
+  (when (equal window-system 'w32)
+    (defun server-ensure-safe-dir (dir) "Noop" t)))
+
+(or (eq (server-running-p) t)
+    (server-start))
+
+
+;; my own stuff
+
+(require 'org-journal)
+
+(set-frame-font "fira code")
+
+;; for Boot.clj
+
+(add-to-list 'auto-mode-alist '("\\.boot\\'" . clojure-mode))
+
+(add-to-list 'magic-mode-alist '(".* boot" . clojure-mode))
+
+(setq exec-path (append exec-path '("C:/Users/pwhyler/bin/")))
+(setenv "PATH" (concat (getenv "PATH") ";C:/Users/pwhyler/bin/"))
+
+;; https://stackoverflow.com/questions/7423921/how-can-i-use-ediff-under-windows-ntemacs
+;; try and set up path properly
+(when (string-equal system-type "windows-nt")
+  (progn
+    (setq diff-path "c:/Program Files/Git/usr/bin/")
+    (setenv "PATH"
+            (concat diff-path ";"))
+    (setq exec-path
+          '(diff-path))
+    (setq ediff-diff-program "c:/Program Files/Git/usr/bin/diff.exe")))
+
+;;;;;; for org-mode
+
+;; Make windmove work in org-mode:
+(add-hook 'org-shiftup-final-hook 'windmove-up)
+(add-hook 'org-shiftleft-final-hook 'windmove-left)
+(add-hook 'org-shiftdown-final-hook 'windmove-down)
+(add-hook 'org-shiftright-final-hook 'windmove-right)
