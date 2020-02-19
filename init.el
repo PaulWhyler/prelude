@@ -45,6 +45,12 @@
 
 (message "Prelude is powering up... Be patient, Master %s!" current-user)
 
+(when (not (string-equal system-type "windows-nt"))
+  (progn
+    (message "Resetting Melpa to be http")
+
+    (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/") ("melpa" . "http://melpa.org/packages/")))))
+
 (when (version< emacs-version "25.1")
   (error "Prelude requires GNU Emacs 25.1 or newer, but you're running %s" emacs-version))
 
@@ -212,3 +218,8 @@ by Prelude.")
 (add-hook 'org-shiftleft-final-hook 'windmove-left)
 (add-hook 'org-shiftdown-final-hook 'windmove-down)
 (add-hook 'org-shiftright-final-hook 'windmove-right)
+
+(when (not (string-equal system-type "windows-nt"))
+  (progn
+    (message "Resetting MELPA to use https (which won't work at the moment")
+    (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/") ("melpa" . "https://melpa.org/packages/")))))
