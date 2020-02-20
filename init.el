@@ -44,8 +44,8 @@
 ;; Always load newest byte code
 (setq load-prefer-newer t)
 
-(defvar prelude-dir (file-name-directory load-file-name)
-  "The root dir of the Emacs Prelude distribution.")
+(defvar prelude-dir (file-name-directory load-file-name))
+"The root dir of the Emacs Prelude distribution."
 (defvar prelude-core-dir (expand-file-name "core" prelude-dir)
   "The home of Prelude's core functionality.")
 (defvar prelude-modules-dir (expand-file-name  "modules" prelude-dir)
@@ -132,4 +132,80 @@ by Prelude.")
  ;; greet the use with some useful tip
  (run-at-time 5 nil 'prelude-tip-of-the-day))
 
+;;;; Function to call (reset) in a Component-based application nRepl
+
+(defun nrepl-reset ()
+  (interactive)
+  (set-buffer "*cider-repl disco-duct*")
+  (goto-char (point-max))
+  (insert "(reset)")
+  (nrepl-return))
+
+(add-hook 'clojure-mode-hook
+          (lambda ()
+            (define-key clojure-mode-map (kbd "C-u C-c C-r") 'nrepl-reset)))
+;;;; Configure clj-refactor
+
+
+(require 'clj-refactor)
+
+(defun clj-refactor-clojure-mode-hook ()
+  (clj-refactor-mode 1)
+  (yas-minor-mode 1)
+  (cljr-add-keybindings-with-prefix "C-c C-m"))
+
+(add-hook 'clojure-mode-hook #'clj-refactor-clojure-mode-hook)
+
+(setq cljr-warn-on-eval nil)
+
 ;;; init.el ends here
+
+;;(defun figwheel-repl ()
+;;  (interactive)
+;;  (run-clojure "lein figwheel"))
+
+;;(add-hook 'clojure-mode-hook #'inf-clojure-minor-mode)
+
+;; Enable elpy
+(package-initialize)
+(elpy-enable)
+
+;;; turn off the cider nrepl messages
+(setq nrepl-log-messages nil)
+
+;;; Configure for boot
+
+(add-to-list 'auto-mode-alist '("\\.boot\\'" . clojure-mode))
+(add-to-list 'magic-mode-alist '(".* boot" . clojure-mode))
+
+;;; Add losenge character for Pollen
+
+(global-set-key "\M-\\" "◊")
+(add-to-list 'load-path (expand-file-name "lisp/pollen-mode" user-emacs-directory))
+(autoload 'pollen-mode "pollen" "A major mode for the pollen preprocessor." t)
+(add-to-list 'auto-mode-alist '("\\.pp\\'" . pollen-mode))
+(add-to-list 'auto-mode-alist '("\\.pmd\\'" . pollen-mode))
+(add-to-list 'auto-mode-alist '("\\.pm\\'" . pollen-mode))
+(add-to-list 'auto-mode-alist '("\\.ptree\\'" . pollen-mode))
+
+;;; Set chrome browser default for URLs
+(setq browse-url-browser-function 'browse-url-generic
+
+;;; org bullets
+(require 'org-bullets)
+(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+
+;;; Clear namespace of symbols
+;;; See http://blog.jenkster.com/2013/12/a-cider-excursion.html for initial idea
+(defun cider-namespace-clear ()
+  (interactive)
+  (cider-interactive-eval
+   "(map #(ns-unmap *ns* %) (keys (ns-interns *ns*)))"))
+
+;;; Enable ElDoc
+
+(add-hook 'clojure-mode-hook 'turn-on-eldoc-mode)
+
+;;; Change backups
+
+(setq backup-directory-alist `(("." . "~/.saves")))
